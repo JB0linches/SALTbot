@@ -67,7 +67,7 @@ def updateChanges(operation_list, wbi):
         print('SALTbot did not detect any relevant statements to add to the graph')
     for operation in operation_list:  
         if operation[0]=='create':
-            last_item, dict_item_wb = createEmptyEntity(operation[1], wbi)
+            last_item, dict_item_wb = createEmptyEntity(operation[1], dict_item_wb, wbi)
             subject_map.update({last_item.id:[last_item, '']})
 
             #print("subject_map: ", subject_map) 

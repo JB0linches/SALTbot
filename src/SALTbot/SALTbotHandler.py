@@ -305,7 +305,7 @@ def SALTbot(wbi, info, man_nodes, opt_nodes, auto, results):
 
     if openAlex == None and articles == {}:
         print("NO INFORMATION REGARDING THE ARTICLE COULD BE FOUND IN WIKIBASE OR OPENALEX. SALTBOT WILL NOT INTRODUCE ANY STATEMENTS")
-        return None
+        return []
     operation_list = SALTbotStatementDefiner.defineOperations(info, article_links, software_links,[auto, article_auto, software_auto], man_nodes, opt_nodes, results, openAlex, wbi)
     
     click.echo(click.style('SALTBOT HAS DETECTED THE FOLLOWING STATEMENTS TO BE INTROUCED: ', bold=True))

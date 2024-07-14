@@ -30,12 +30,13 @@ def parseBib(info):
 
 def queryOpenAlex(article):
     article = article.replace(",", "")
+    article = article.replace(" ", "%")
     url = 'https://api.openalex.org/works?filter=title.search:'+ article
-    #print(url)
+    print(url)
 
     r = requests.get(url).json()
 
-    if r['meta']['count']>1:
+    if r['meta']['count']>0:
         return r['results'][0]
     else:
          return None
