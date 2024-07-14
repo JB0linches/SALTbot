@@ -123,8 +123,8 @@ def createArticleOperations(info, man_nodes, opt_nodes, openAlex, wbi):
     resultOps = []
     #print(licenses)
     #Mandatory properties
-    print(man_nodes)
-    print(openAlex.keys())
+    #print(man_nodes)
+    #print(openAlex.keys())
     #resultOps.append(['statement',{'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':man_nodes['instance of'], 'o':man_nodes['article'], 'qualifiers':None}])
    
     try:
@@ -139,10 +139,10 @@ def createArticleOperations(info, man_nodes, opt_nodes, openAlex, wbi):
         if opt_nodes[prop] != None:
             if prop == 'DOI':
                 if 'doi' in openAlex.keys():
-                    resultOps.append(['statement',{'datatype':'Item', 's':openAlex['title'], 'p':opt_nodes['DOI'], 'o':openAlex['doi'], 'qualifiers':None}])
+                    resultOps.append(['statement',{'datatype':'URL', 's':openAlex['title'], 'p':opt_nodes['DOI'], 'o':openAlex['doi'], 'qualifiers':None}])
             if prop == 'OpenAlex ID':
                 if 'id' in openAlex.keys():
-                    resultOps.append(['statement',{'datatype':'Item', 's':openAlex['title'], 'p':opt_nodes['OpenAlex ID'], 'o':openAlex['id'], 'qualifiers':None}])
+                    resultOps.append(['statement',{'datatype':'URL', 's':openAlex['title'], 'p':opt_nodes['OpenAlex ID'], 'o':openAlex['id'], 'qualifiers':None}])
     return resultOps
 
 #TODO:change to man_nodes
@@ -152,6 +152,12 @@ def defineOperations(info, article_links, software_links,auto, man_nodes, opt_no
     map_softwares = {}
 
     #print(man_nodes)
+    #for i in man_nodes:
+    #    print(i, ' : ', man_nodes[i])
+    
+    #for i in opt_nodes:
+    #    print(i, ' : ', opt_nodes[i])
+    
     #print(opt_nodes)
     #print('article links: ', article_links)
     #print('software links: ', software_links)
@@ -268,8 +274,8 @@ def defineOperations(info, article_links, software_links,auto, man_nodes, opt_no
     #check enlaces
     if qnode_article == None or qnode_software == None:
         
-        operation_list.append(['statement', {'datatype':'Item', 's':str(info['name'][0]['result']['value'])+' scholarly article', 'p':man_nodes['main subject'], 'o':info['name'][0]['result']['value'], 'qualifiers':None}])
-        operation_list.append(['statement', {'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':man_nodes['described by source'], 'o':str(info['name'][0]['result']['value'])+' scholarly article', 'qualifiers':None}])
+        operation_list.append(['statement', {'datatype':'Item', 's':openAlex['title'], 'p':man_nodes['main subject'], 'o':info['name'][0]['result']['value'], 'qualifiers':None}])
+        operation_list.append(['statement', {'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':man_nodes['described by source'], 'o':openAlex['title'], 'qualifiers':None}])
 
     else:
        getRelations(operation_list, article_links, software_links, qnode_article, qnode_software,man_nodes, results, wbi) 
@@ -318,8 +324,9 @@ def defineOperations(info, article_links, software_links,auto, man_nodes, opt_no
     '''    
     #prnt('results en operations', results)
     #print('operation list en operations', operation_list)
-    for i in operation_list:
-        print(i)
+    
+    #for i in operation_list:
+    #    print(i)
     return operation_list
 
 

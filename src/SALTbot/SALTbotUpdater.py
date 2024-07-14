@@ -11,10 +11,12 @@ from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 import re
 import json
 import ast
+import SALTbotHandler
+import time
 
-def createEmptyEntity(data, wbi):
+def createEmptyEntity(data, dict_item_wb, wbi):
     try:
-        print('Creating entity...')
+        print('Creating entity ',data['LABEL'])
    
         item_wb = wbi.item.new()
         item_wb.labels.set(language='en', value=data['LABEL'])
@@ -22,7 +24,8 @@ def createEmptyEntity(data, wbi):
         summary='created '+ data['LABEL']
         item_wb = item_wb.write(summary=summary) 
         print('Item created as ', item_wb.id)
-        return item_wb
+        dict_item_wb.update({data['LABEL']:item_wb.id})
+        return item_wb, dict_item_wb
     except Exception as e:
         print('Create ',data,' could not be done. Reason: ', e)
 
@@ -31,13 +34,14 @@ def createEmptyEntity(data, wbi):
 
 
 
-def createStatement(data,last_item,subject_map, wbi):
+def createStatement(data,subject_map, dict_item_wb, wbi):
     try:
         
-        if not re.search("Q\d+", data['s']):
-            data['s'] =  last_item.id
-        elif not re.search("Q\d+", data['o']):
-            data['o'] =  last_item.id
+        if data['s'] in dict_item_wb.keys():
+            data['s'] = dict_item_wb[data['s']]
+        
+        if data['o'] in dict_item_wb.keys():
+            data['o'] = dict_item_wb[data['o']]
         
         print('creating statement [', data['s'], ' ', data['p'],' ' ,data['o'], ']')
 
@@ -58,22 +62,23 @@ def createStatement(data,last_item,subject_map, wbi):
 def updateChanges(operation_list, wbi):
     last_item = None
     subject_map = {}
+    dict_item_wb = {}
     if(operation_list == []):
         print('SALTbot did not detect any relevant statements to add to the graph')
     for operation in operation_list:  
         if operation[0]=='create':
-            last_item = createEmptyEntity(operation[1], wbi)
+            last_item, dict_item_wb = createEmptyEntity(operation[1], wbi)
             subject_map.update({last_item.id:[last_item, '']})
 
-            print("subject_map: ", subject_map) 
+            #print("subject_map: ", subject_map) 
            
         elif operation[0] == 'statement':
-            createStatement(operation[1],last_item,subject_map, wbi)
+            createStatement(operation[1],subject_map, dict_item_wb, wbi)
     for entity in subject_map.keys():
     
         try:
             summary=subject_map[entity][1]
-            print('summary: ', summary)
+            #print('summary: ', summary)
             subject_map[entity][0].write(summary=summary)
             #print('succesfully written statements for ', subject_map[entity])
         except Exception as e:
@@ -97,7 +102,7 @@ def executeOperations(operation_list,auto,wbi):
         if operation_aux[0] == 'create':
             print('CREATE ENTITY [', operation_aux[1]['LABEL'], '] WITH DESCRIPTION [', operation_aux[1]['DESCRIPTION'],']')
         if operation_aux[0] == 'statement':
-            print('CREATE STATEMENT [', operation_aux[1]['s'],' ',operation_aux[1]['p'],' ',operation_aux[1]['o'],'] OF TYPE [', operation_aux[1]['datatype'], ' WITH QUALIFIERS ', operation_aux[1]['qualifiers'],']')
+            print('CREATE STATEMENT [', operation_aux[1]['s'],' ',operation_aux[1]['p'],' ',operation_aux[1]['o'],'] OF TYPE [', operation_aux[1]['datatype'], '] WITH QUALIFIERS [', operation_aux[1]['qualifiers'],']')
     
     if auto == True:
         updateChanges(operation_list_aux, wbi)

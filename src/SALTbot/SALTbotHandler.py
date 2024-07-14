@@ -308,6 +308,9 @@ def SALTbot(wbi, info, man_nodes, opt_nodes, auto, results):
         return None
     operation_list = SALTbotStatementDefiner.defineOperations(info, article_links, software_links,[auto, article_auto, software_auto], man_nodes, opt_nodes, results, openAlex, wbi)
     
+    click.echo(click.style('SALTBOT HAS DETECTED THE FOLLOWING STATEMENTS TO BE INTROUCED: ', bold=True))
+    for i in operation_list:
+        print(i)
         
     return operation_list
 
