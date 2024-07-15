@@ -28,6 +28,7 @@ def createEmptyEntity(data, dict_item_wb, wbi):
         return item_wb, dict_item_wb
     except Exception as e:
         print('Create ',data,' could not be done. Reason: ', e)
+        return None, dict_item_wb
 
 
 
@@ -35,25 +36,45 @@ def createEmptyEntity(data, dict_item_wb, wbi):
 
 
 def createStatement(data,subject_map, dict_item_wb, wbi):
+    #print(data['qualifiers'])
     try:
-        
+        regex = r'^(http|https)://([a-zA-Z0-9-]+\.)+([a-zA-Z]{2,})(/[^\s]*)?$'
         if data['s'] in dict_item_wb.keys():
             data['s'] = dict_item_wb[data['s']]
+        else:
+            item = SALTbotHandler.getCorrectQnode(data['s'], wbi_helpers.search_entities(search_string=data['s'], dict_result = True))
+            dict_item_wb.update({data['s']:item})
+            data['s'] = item
         
         if data['o'] in dict_item_wb.keys():
             data['o'] = dict_item_wb[data['o']]
+            
+        #elif re.match(regex, data['o']) == None and re.match('\bQ\d+\b', data['o']) != None:
+        #    print('match not regex', data['o'])
         
         print('creating statement [', data['s'], ' ', data['p'],' ' ,data['o'], ']')
 
         if data['s'] not in subject_map.keys():
             item_wb = wbi.item.get(entity_id=data['s'])
+            #print(item_wb)
             subject_map.update({item_wb.id:[item_wb, '']})
+            data['s'] = item_wb.id
         if data['datatype'] == 'Item':
-            subject_map[data['s']][0].claims.add(Item(value=data['o'], prop_nr=data['p']),action_if_exists = ActionIfExists.FORCE_APPEND)
+            subject_map[data['s']][0].claims.add(Item(value=data['o'], prop_nr=data['p']),action_if_exists = ActionIfExists.APPEND_OR_REPLACE)
             subject_map[data['s']][1] = subject_map[data['s']][1] +' '+ str(data['p']) + ':' + str(data['o']) + ' '
         elif data['datatype'] == 'URL':
-            subject_map[data['s']][0].claims.add(URL(value=data['o'], prop_nr=data['p'], qualifiers=data['qualifiers']), action_if_exists = ActionIfExists.FORCE_APPEND)
+            print(data['o'])
+            qualifiers = None
+            if qualifiers != None:
+                for qual in data['qualifiers']:
+                    qualifiers.add(Item(prop_nr=qual[1], value=qual[0]))
+            subject_map[data['s']][0].claims.add(URL(value=data['o'], prop_nr=data['p'], qualifiers=qualifiers), action_if_exists = ActionIfExists.APPEND_OR_REPLACE)
             subject_map[data['s']][1] = subject_map[data['s']][1] + ' ' +str(data['p']) + ':' +str(data['o']) + ' '
+        elif data['datatype'] == 'String':
+            subject_map[data['s']][0].claims.add(String(value=data['o'], prop_nr=data['p']), action_if_exists = ActionIfExists.APPEND_OR_REPLACE)
+            subject_map[data['s']][1] = subject_map[data['s']][1] + ' ' +str(data['p']) + ':' +str(data['o']) + ' '
+            
+        subject_map[data['s']][0].write(summary = subject_map[data['s']][1])
         print('succesfully created [', data['s'], ' ', data['p'],' ' ,data['o'], ']')
     except Exception as e:
         print('statement ', data, 'could not be imported. Reason: ', e)
@@ -67,24 +88,18 @@ def updateChanges(operation_list, wbi):
         print('SALTbot did not detect any relevant statements to add to the graph')
     for operation in operation_list:  
         if operation[0]=='create':
-            last_item, dict_item_wb = createEmptyEntity(operation[1], dict_item_wb, wbi)
-            subject_map.update({last_item.id:[last_item, '']})
+            try:
+                last_item, dict_item_wb = createEmptyEntity(operation[1], dict_item_wb, wbi)
+            
+                subject_map.update({last_item.id:[last_item, '']})
+            except:
+                continue
 
             #print("subject_map: ", subject_map) 
            
         elif operation[0] == 'statement':
             createStatement(operation[1],subject_map, dict_item_wb, wbi)
-    for entity in subject_map.keys():
     
-        try:
-            summary=subject_map[entity][1]
-            #print('summary: ', summary)
-            subject_map[entity][0].write(summary=summary)
-            #print('succesfully written statements for ', subject_map[entity])
-        except Exception as e:
-            print(e)
-
-
 def executeOperations(operation_list,auto,wbi):
     
     click.echo(click.style('SALTbot WILL INTRODUCE THESE STATEMENTS IN WIKIDATA', fg='red', bold = True))

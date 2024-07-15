@@ -19,7 +19,12 @@ def createSoftwareOperations(info, man_nodes, opt_nodes, wbi):
     #print(licenses)
     #Mandatory properties
     try:
-        resultOps.append(['create',{'LABEL':info['name'][0]['result']['value'], 'DESCRIPTION':info['description'][0]['result']['value']}])
+        if len(info['description'][0]['result']['value'])<250:
+            resultOps.append(['create',{'LABEL':info['name'][0]['result']['value'], 'DESCRIPTION':info['description'][0]['result']['value']}])
+        else:
+            description = info['description'][0]['result']['value'][:249]
+            resultOps.append(['create',{'LABEL':info['name'][0]['result']['value'], 'DESCRIPTION':description}])
+            
         #print('instanceof statement', ['statement',{'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':instanceOfPnode, 'o':softwareQnode[0]}])
         resultOps.append(['statement',{'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':man_nodes['instance of'], 'o':man_nodes['article'], 'qualifiers':None}])
     except Exception as e:
@@ -46,7 +51,7 @@ def createSoftwareOperations(info, man_nodes, opt_nodes, wbi):
     for prop in opt_nodes.keys():
         qualifiers = None
         if opt_nodes[prop] != None:
-            if prop == 'code repository':
+            '''if prop == 'code repository':
                 
                 qualifiers = []
                 if opt_nodes['web interface software']!=None and opt_nodes['version control system']!=None and opt_nodes['Git']!=None and opt_nodes['GitHub'] !=None:
@@ -54,8 +59,8 @@ def createSoftwareOperations(info, man_nodes, opt_nodes, wbi):
                     qualifiers.append([opt_nodes['Git'], opt_nodes['version control system']])
                     qualifiers.append([opt_nodes['GitHub'], opt_nodes['web interface software']])
 
-                resultOps.append(['statement',{'datatype':'URL', 's':info['name'][0]['result']['value'], 'p':opt_nodes[prop], 'o':info['code_repository'][0]['result']['value'], 'qualifiers':qualifiers}])
-               
+                    resultOps.append(['statement',{'datatype':'URL', 's':info['name'][0]['result']['value'], 'p':opt_nodes[prop], 'o':info['code_repository'][0]['result']['value'], 'qualifiers':qualifiers}])
+            '''   
             if prop == 'programming language':
                 dic_language = {}
                 size = 0
@@ -126,11 +131,20 @@ def createArticleOperations(info, man_nodes, opt_nodes, openAlex, wbi):
     #print(man_nodes)
     #print(openAlex.keys())
     #resultOps.append(['statement',{'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':man_nodes['instance of'], 'o':man_nodes['article'], 'qualifiers':None}])
-   
+    #for i in openAlex['authorships']:
+    #    print(i['author']['display_name'])
+    #print(openAlex.keys())
     try:
-        resultOps.append(['create',{'LABEL':openAlex['title'], 'DESCRIPTION':info['description'][0]['result']['value']}])
+        
+        if len(info['description'][0]['result']['value'])<250:
+            resultOps.append(['create',{'LABEL':openAlex['title'], 'DESCRIPTION':info['description'][0]['result']['value']}])
+        else:
+            description = info['description'][0]['result']['value'][:249]
+            resultOps.append(['create',{'LABEL':openAlex['title'], 'DESCRIPTION':description}])
         #print('instanceof statement', ['statement',{'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':instanceOfPnode, 'o':softwareQnode[0]}])
         resultOps.append(['statement',{'datatype':'Item', 's':openAlex['title'], 'p':man_nodes['instance of'], 'o':man_nodes['scholarly article'], 'qualifiers':None}])
+    
+    
     except Exception as e:
         print(e)
     
@@ -140,6 +154,10 @@ def createArticleOperations(info, man_nodes, opt_nodes, openAlex, wbi):
             if prop == 'DOI':
                 if 'doi' in openAlex.keys():
                     resultOps.append(['statement',{'datatype':'URL', 's':openAlex['title'], 'p':opt_nodes['DOI'], 'o':openAlex['doi'], 'qualifiers':None}])
+            if prop == 'author name string':
+                if 'authorships' in openAlex.keys():
+                    for author in openAlex['authorships']:
+                        resultOps.append(['statement',{'datatype':'String', 's':openAlex['title'], 'p':opt_nodes['author name string'], 'o':author['author']['display_name'], 'qualifiers':None}])
             if prop == 'OpenAlex ID':
                 if 'id' in openAlex.keys():
                     resultOps.append(['statement',{'datatype':'URL', 's':openAlex['title'], 'p':opt_nodes['OpenAlex ID'], 'o':openAlex['id'], 'qualifiers':None}])

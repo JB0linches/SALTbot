@@ -88,6 +88,13 @@ def getOptionalNodes(wbi, configData):
             opt_nodes['OpenAlex ID'] = getCorrectQnode('OpenAlex ID', wbi_helpers.search_entities(search_string='OpenAlex ID', dict_result=True, search_type='property'))
         except:
             aux = 1
+        
+        try:
+            opt_nodes['author name string'] = getCorrectQnode('author name string', wbi_helpers.search_entities(search_string='author name string', dict_result=True, search_type='property'))
+        except:
+            aux = 1
+            
+            
     
     #TODO:change Pnode for local
     #print(opt_nodes)
@@ -195,6 +202,7 @@ def SALTbot(wbi, info, man_nodes, opt_nodes, auto, results):
 
     #print('parsedTitles', parsedTitles)
 
+    openAlex = None
     if(parsedTitles == []):
         print("NO DETECTED TITLES")
     else:   

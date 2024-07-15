@@ -32,14 +32,16 @@ def queryOpenAlex(article):
     article = article.replace(",", "")
     article = article.replace(" ", "%")
     url = 'https://api.openalex.org/works?filter=title.search:'+ article
-    print(url)
+    #print(url)
 
     r = requests.get(url).json()
-
-    if r['meta']['count']>0:
-        return r['results'][0]
-    else:
-         return None
+    result = None
+    if 'meta' in r.keys():
+        if r['meta']['count']>0:
+            result = r['results'][0]
+    
+    return result
+    
 
 #returns all the article titles detected
 #info: json extracted with somef
